@@ -1,9 +1,18 @@
 <?xml version="1.0" encoding="utf-8"?>
-<android.support.constraint.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:app="http://schemas.android.com/apk/res-auto"
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
+    android:gravity="center"
+    android:orientation="vertical"
+    android:id="@+id/root_linear_layout"
     tools:context="com.playground.viewsplayground.ui.MainActivity">
 
-</android.support.constraint.ConstraintLayout>
+    <com.playground.viewsplayground.custom.PasswordEditText
+        android:id="@+id/password_edit_text"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content" />
+<com.playground.viewsplayground.analog_clock.AnalogPlayableClock
+    android:layout_width="match_parent"
+    android:layout_height="match_parent" />
+</LinearLayout>
