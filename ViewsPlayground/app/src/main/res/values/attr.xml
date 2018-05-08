@@ -37,4 +37,12 @@
             <enum name="tornado_circle_3" value="23" />
         </attr>
     </declare-styleable>
+    <declare-styleable name="AnalogPlayableClock">
+        <attr name="small_hand_color" format="color" />
+        <attr name="big_hand_color" format="color" />
+        <attr name="dial_color" format="color" />
+        <attr name="start_hour" format="integer"></attr>
+        <attr name="start_minutes" format="integer"></attr>
+    </declare-styleable>
+
 </resources>
