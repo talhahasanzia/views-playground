@@ -19,5 +19,6 @@
         android:layout_height="300dp"
         android:paddingRight="20dp"
         android:paddingLeft="16dp"
-        app:dial_color="#0Affff"/>
+        app:dial_color="#0Affff"
+        app:is_active="true"/>
 </LinearLayout>

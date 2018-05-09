@@ -1,6 +1,9 @@
 package com.playground.viewsplayground.analog_clock;
 
+import android.content.BroadcastReceiver;
 import android.content.Context;
+import android.content.Intent;
+import android.content.IntentFilter;
 import android.content.res.TypedArray;
 import android.graphics.Canvas;
 import android.graphics.Color;
@@ -14,6 +17,8 @@ import android.view.View;
 
 import com.playground.viewsplayground.R;
 
+import java.util.Calendar;
+
 /**
  * Created by Talha Hasan Zia on 08-May-18.
  * <p></p><b>Description:</b><p></p> Why class was created?
@@ -23,39 +28,58 @@ import com.playground.viewsplayground.R;
 public class AnalogPlayableClock extends View {
 
     private static final String TAG = "ANACLOCK";
-    private int hour = 4, minutes = 30;
+    private int hour, minutes;
     private double smallHandStartX, smallHandEndX, bigHandStartX, bigHandEndX, smallHandStartY, smallHandEndY, bigHandStartY, bigHandEndY;
     private float smallHandLength, bigHandLength, dialRadius;
     private float smallHandWidth, bigHandWidth, dialWidth;
     private float validPadding;
     private double smallHandSlope, bigHandSlope;
+    private int smallHandColor, bigHandColor;
     private boolean isDrawingAllowed = true;
+    private boolean isActive, mAttached;
+    private final BroadcastReceiver mIntentReceiver = new BroadcastReceiver() {
+        @Override
+        public void onReceive(Context context, Intent intent) {
+            if (isActive)
+                updateTime();
+        }
+    };
+    private int dialColor;
 
     public AnalogPlayableClock(Context context) {
         super(context);
+        init(context, null);
     }
 
     public AnalogPlayableClock(Context context, @Nullable AttributeSet attrs) {
         super(context, attrs);
+        init(context, attrs);
     }
 
     public AnalogPlayableClock(Context context, @Nullable AttributeSet attrs, int defStyleAttr) {
         super(context, attrs, defStyleAttr);
+        init(context, attrs);
     }
 
     @RequiresApi(api = Build.VERSION_CODES.LOLLIPOP)
     public AnalogPlayableClock(Context context, @Nullable AttributeSet attrs, int defStyleAttr, int defStyleRes) {
         super(context, attrs, defStyleAttr, defStyleRes);
+        init(context, attrs);
     }
 
-    private void init(Context context, AttributeSet attributeSet)
-    {
+    private void init(Context context, AttributeSet attributeSet) {
         if (attributeSet != null) {
 
             TypedArray attributeArray = context.obtainStyledAttributes(attributeSet, R.styleable.AnalogPlayableClock);
 
+
+            hour = attributeArray.getInteger(R.styleable.AnalogPlayableClock_start_hour, Calendar.getInstance().get(Calendar.HOUR));
+            minutes = attributeArray.getInteger(R.styleable.AnalogPlayableClock_start_minutes, Calendar.getInstance().get(Calendar.MINUTE));
+            dialColor = attributeArray.getColor(R.styleable.AnalogPlayableClock_dial_color, Color.BLUE);
+            smallHandColor = attributeArray.getColor(R.styleable.AnalogPlayableClock_small_hand_color, Color.RED);
+            bigHandColor = attributeArray.getColor(R.styleable.AnalogPlayableClock_big_hand_color, Color.BLUE);
             attributeArray.recycle();
-            
+
         }
 
     }
@@ -89,6 +113,23 @@ public class AnalogPlayableClock extends View {
         }
 
         setMeasuredDimension(measuredWidth, measuredHeight);
+    }
+
+    @Override
+    protected void onAttachedToWindow() {
+        super.onAttachedToWindow();
+        if (isAttachedToWindow()) {
+
+            if (!mAttached) {
+                mAttached = true;
+                IntentFilter filter = new IntentFilter();
+                filter.addAction(Intent.ACTION_TIME_TICK);
+                filter.addAction(Intent.ACTION_TIME_CHANGED);
+                filter.addAction(Intent.ACTION_TIMEZONE_CHANGED);
+
+                getContext().registerReceiver(mIntentReceiver, filter);
+            }
+        }
     }
 
     private int measureHeight(int measureSpec) throws Exception {
@@ -167,7 +208,7 @@ public class AnalogPlayableClock extends View {
     private void drawBigHand(Canvas canvas, float viewMidX, float viewMidY) {
         Paint paint = new Paint();
         paint.setStrokeWidth(bigHandWidth);
-        paint.setColor(Color.BLUE);
+        paint.setColor(bigHandColor);
 
 
         bigHandSlope = getMinutesAngleFromTime();
@@ -180,7 +221,7 @@ public class AnalogPlayableClock extends View {
     private void drawSmallHand(Canvas canvas, float viewMidX, float viewMidY) {
         Paint paint = new Paint();
         paint.setStrokeWidth(smallHandWidth);
-        paint.setColor(Color.RED);
+        paint.setColor(smallHandColor);
 
         smallHandSlope = getHoursAngleFromTime();
         smallHandEndX = (smallHandLength * Math.cos(smallHandSlope)) + viewMidX;
@@ -193,7 +234,7 @@ public class AnalogPlayableClock extends View {
     private void drawDial(Canvas canvas, float viewMidX, float viewMidY) {
         Paint paint = new Paint();
         paint.setStyle(Paint.Style.STROKE);
-        paint.setColor(Color.BLUE);
+        paint.setColor(dialColor);
         paint.setStrokeWidth(dialWidth);
         canvas.drawCircle(viewMidX, viewMidY, dialRadius, paint);
     }
@@ -224,7 +265,9 @@ public class AnalogPlayableClock extends View {
             hour = hour - 12;
 
 
-        double degreeInAngles = hour * 30;
+        float hourDecimal = hour + (minutes / 60f);
+
+        double degreeInAngles = hourDecimal * 30;
 
 
         return Math.toRadians(degreeInAngles - 90);
@@ -257,5 +300,15 @@ public class AnalogPlayableClock extends View {
 
     private float normalizeValue(float val) {
         return val < 0 ? val * (-1) : val;
+    }
+
+    private void updateTime() {
+
+        Calendar calendar = Calendar.getInstance();
+        hour = calendar.get(Calendar.HOUR);
+        minutes = calendar.get(Calendar.MINUTE);
+
+        invalidate();
+
     }
 }
